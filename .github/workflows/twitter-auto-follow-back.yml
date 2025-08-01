@@ -1,28 +1,23 @@
-name: ci
+name: Twitter Auto Follow Back
 
 on:
-  push:
-    branches:
-      - main
   schedule:
-    - cron: "0 0 * * *" #Daily
+    - cron: '0 */6 * * *'  # 每6小时自动运行一次
+  workflow_dispatch:
 
 jobs:
-  autogreen:
+  follow-back:
     runs-on: ubuntu-latest
-    
-    permissions:
-      contents: write
-  
     steps:
-      - name: Clone repository
-        uses: actions/checkout@v3
-
-      - name: Auto green
-        run: |
-          git config --local user.email "zmountain28@gmail.com"
-          git config --local user.name "${{ github.actor }}"
-          git remote set-url origin https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-          git pull --rebase
-          git commit --allow-empty -m "a commit a day keeps your girlfriend away"
-          git push
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: pip install requests
+      - name: Run follow-back script
+        env:
+          TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
+          TWITTER_USER_ID: ${{ secrets.TWITTER_USER_ID }}
+        run: python scripts/twitter_follow_back.py
